@@ -140,11 +140,25 @@ ALTER TABLE public.ai_insights ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.team_members ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.time_entries ENABLE ROW LEVEL SECURITY;
 
+-- Add company_id column to existing users table if it doesn't exist
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'company_id') THEN
+    ALTER TABLE public.users ADD COLUMN company_id UUID REFERENCES public.companies(id);
+  END IF;
+END $$;
+
 -- RLS Policies (only create if they don't exist)
 DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can view own company') THEN
     CREATE POLICY "Users can view own company" ON public.companies FOR SELECT 
     USING (id IN (SELECT company_id FROM public.users WHERE id = auth.uid()));
+  END IF;
+END $$;
+
+-- Add company_id column to existing teams table if it doesn't exist
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'teams' AND column_name = 'company_id') THEN
+    ALTER TABLE public.teams ADD COLUMN company_id UUID REFERENCES public.companies(id);
   END IF;
 END $$;
 
