@@ -1,12 +1,25 @@
 -- Orchestrix Database Schema for Supabase
 -- Main SQL script to set up all tables and relationships
 
+-- Companies table
+CREATE TABLE public.companies (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  name TEXT NOT NULL,
+  description TEXT,
+  website TEXT,
+  industry TEXT,
+  size TEXT CHECK (size IN ('startup', 'small', 'medium', 'large', 'enterprise')) DEFAULT 'small',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- Users table (extends Supabase auth.users)
 CREATE TABLE public.users (
   id UUID REFERENCES auth.users(id) PRIMARY KEY,
   email TEXT UNIQUE NOT NULL,
   full_name TEXT,
   role TEXT CHECK (role IN ('admin', 'manager', 'employee')) DEFAULT 'employee',
+  company_id UUID REFERENCES public.companies(id),
   avatar_url TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -17,6 +30,7 @@ CREATE TABLE public.teams (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   name TEXT NOT NULL,
   description TEXT,
+  company_id UUID REFERENCES public.companies(id),
   created_by UUID REFERENCES public.users(id),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -114,6 +128,7 @@ CREATE TABLE public.time_entries (
 );
 
 -- Enable Row Level Security
+ALTER TABLE public.companies ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.teams ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.projects ENABLE ROW LEVEL SECURITY;
@@ -125,6 +140,9 @@ ALTER TABLE public.team_members ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.time_entries ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies
+CREATE POLICY "Users can view own company" ON public.companies FOR SELECT 
+USING (id IN (SELECT company_id FROM public.users WHERE id = auth.uid()));
+
 CREATE POLICY "Users can view own profile" ON public.users FOR SELECT USING (auth.uid() = id);
 CREATE POLICY "Users can update own profile" ON public.users FOR UPDATE USING (auth.uid() = id);
 
@@ -145,7 +163,10 @@ CREATE POLICY "Users can view own workload" ON public.user_workload FOR SELECT U
 CREATE POLICY "Users can view own notifications" ON public.notifications FOR SELECT USING (user_id = auth.uid());
 
 -- Create indexes
+CREATE INDEX idx_companies_name ON public.companies(name);
+CREATE INDEX idx_users_company_id ON public.users(company_id);
 CREATE INDEX idx_users_role ON public.users(role);
+CREATE INDEX idx_teams_company_id ON public.teams(company_id);
 CREATE INDEX idx_projects_status ON public.projects(status);
 CREATE INDEX idx_tasks_assigned_to ON public.tasks(assigned_to);
 CREATE INDEX idx_tasks_status ON public.tasks(status);
@@ -160,6 +181,7 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
+CREATE TRIGGER update_companies_updated_at BEFORE UPDATE ON public.companies FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON public.users FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_projects_updated_at BEFORE UPDATE ON public.projects FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_tasks_updated_at BEFORE UPDATE ON public.tasks FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
