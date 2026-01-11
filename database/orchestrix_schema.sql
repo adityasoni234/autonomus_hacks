@@ -174,21 +174,42 @@ DO $$ BEGIN
   END IF;
 END $$;
 
-CREATE POLICY "Team members can view team" ON public.teams FOR SELECT 
-USING (id IN (SELECT team_id FROM public.team_members WHERE user_id = auth.uid()));
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Team members can view team') THEN
+    CREATE POLICY "Team members can view team" ON public.teams FOR SELECT 
+    USING (id IN (SELECT team_id FROM public.team_members WHERE user_id = auth.uid()));
+  END IF;
+END $$;
 
-CREATE POLICY "Team members can view team projects" ON public.projects FOR SELECT 
-USING (team_id IN (SELECT team_id FROM public.team_members WHERE user_id = auth.uid()));
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Team members can view team projects') THEN
+    CREATE POLICY "Team members can view team projects" ON public.projects FOR SELECT 
+    USING (team_id IN (SELECT team_id FROM public.team_members WHERE user_id = auth.uid()));
+  END IF;
+END $$;
 
-CREATE POLICY "Users can view relevant tasks" ON public.tasks FOR SELECT 
-USING (assigned_to = auth.uid() OR project_id IN (
-  SELECT p.id FROM public.projects p 
-  JOIN public.team_members tm ON p.team_id = tm.team_id 
-  WHERE tm.user_id = auth.uid()
-));
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can view relevant tasks') THEN
+    CREATE POLICY "Users can view relevant tasks" ON public.tasks FOR SELECT 
+    USING (assigned_to = auth.uid() OR project_id IN (
+      SELECT p.id FROM public.projects p 
+      JOIN public.team_members tm ON p.team_id = tm.team_id 
+      WHERE tm.user_id = auth.uid()
+    ));
+  END IF;
+END $$;
 
-CREATE POLICY "Users can view own workload" ON public.user_workload FOR SELECT USING (user_id = auth.uid());
-CREATE POLICY "Users can view own notifications" ON public.notifications FOR SELECT USING (user_id = auth.uid());
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can view own workload') THEN
+    CREATE POLICY "Users can view own workload" ON public.user_workload FOR SELECT USING (user_id = auth.uid());
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can view own notifications') THEN
+    CREATE POLICY "Users can view own notifications" ON public.notifications FOR SELECT USING (user_id = auth.uid());
+  END IF;
+END $$;
 
 -- Create indexes (only if they don't exist)
 CREATE INDEX IF NOT EXISTS idx_companies_name ON public.companies(name);
