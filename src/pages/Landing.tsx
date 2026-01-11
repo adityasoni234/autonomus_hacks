@@ -67,37 +67,39 @@ const Landing: React.FC = () => {
         <div className={styles.keyFeaturesContent}>
           <h2 className={styles.keyFeaturesTitle}>✨ Key Features</h2>
           
-          <div className={styles.featureSection}>
-            <h3 className={styles.sectionTitle}>For Team Members:</h3>
-            <ul className={styles.featureList}>
-              <li>✅ Personalized dashboard with AI-recommended tasks</li>
-              <li>✅ Smart notifications (only relevant updates)</li>
-              <li>✅ Workload visibility and capacity alerts</li>
-              <li>✅ Automated time tracking</li>
-              <li>✅ Context-aware task details</li>
-            </ul>
-          </div>
+          <div className={styles.featuresGrid}>
+            <div className={styles.featureSection}>
+              <h3 className={styles.sectionTitle}>For Team Members:</h3>
+              <ul className={styles.featureList}>
+                <li>✅ Personalized dashboard with AI-recommended tasks</li>
+                <li>✅ Smart notifications (only relevant updates)</li>
+                <li>✅ Workload visibility and capacity alerts</li>
+                <li>✅ Automated time tracking</li>
+                <li>✅ Context-aware task details</li>
+              </ul>
+            </div>
 
-          <div className={styles.featureSection}>
-            <h3 className={styles.sectionTitle}>For Project Managers:</h3>
-            <ul className={styles.featureList}>
-              <li>✅ AI-powered project health scores</li>
-              <li>✅ Predictive timeline and budget analysis</li>
-              <li>✅ One-click sprint planning</li>
-              <li>✅ Automated risk reports</li>
-              <li>✅ Team performance analytics</li>
-            </ul>
-          </div>
+            <div className={styles.featureSection}>
+              <h3 className={styles.sectionTitle}>For Project Managers:</h3>
+              <ul className={styles.featureList}>
+                <li>✅ AI-powered project health scores</li>
+                <li>✅ Predictive timeline and budget analysis</li>
+                <li>✅ One-click sprint planning</li>
+                <li>✅ Automated risk reports</li>
+                <li>✅ Team performance analytics</li>
+              </ul>
+            </div>
 
-          <div className={styles.featureSection}>
-            <h3 className={styles.sectionTitle}>For Executives:</h3>
-            <ul className={styles.featureList}>
-              <li>✅ Portfolio-level insights</li>
-              <li>✅ Resource utilization metrics</li>
-              <li>✅ ROI and efficiency tracking</li>
-              <li>✅ Strategic recommendations</li>
-              <li>✅ Custom KPI dashboards</li>
-            </ul>
+            <div className={styles.featureSection}>
+              <h3 className={styles.sectionTitle}>For Executives:</h3>
+              <ul className={styles.featureList}>
+                <li>✅ Portfolio-level insights</li>
+                <li>✅ Resource utilization metrics</li>
+                <li>✅ ROI and efficiency tracking</li>
+                <li>✅ Strategic recommendations</li>
+                <li>✅ Custom KPI dashboards</li>
+              </ul>
+            </div>
           </div>
         </div>
       </section>

@@ -32,62 +32,40 @@
   -webkit-text-fill-color: transparent;
 }
 
-.nav {
-  display: flex;
-  gap: 2rem;
-}
-
-.navItem {
-  padding: 0.75rem 1.25rem;
-  border-radius: 0.5rem;
-  color: #d1d5db;
-  font-weight: 500;
-  transition: all 0.3s ease;
-  text-decoration: none;
-  position: relative;
-}
-
-.navItem:hover {
-  color: white;
-  background: rgba(147, 51, 234, 0.1);
-  transform: translateY(-1px);
-}
-
-.navItem.active {
-  color: #a855f7;
-  background: rgba(147, 51, 234, 0.2);
-  border: 1px solid rgba(147, 51, 234, 0.3);
-}
-
-.navItem.active::after {
-  content: '';
-  position: absolute;
-  bottom: -1px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 80%;
-  height: 2px;
-  background: linear-gradient(135deg, #9333ea, #a855f7);
-  border-radius: 1px;
-}
-
 .actions {
   display: flex;
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
-.actionButton {
-  padding: 0.75rem;
-  border-radius: 0.5rem;
+.loginButton {
+  padding: 0.75rem 1.5rem;
+  background: transparent;
   color: #d1d5db;
-  transition: all 0.3s ease;
-  background: none;
-  border: none;
+  border: 1px solid rgba(147, 51, 234, 0.3);
+  border-radius: 0.5rem;
+  font-weight: 500;
   cursor: pointer;
+  transition: all 0.3s ease;
 }
 
-.actionButton:hover {
+.loginButton:hover {
   color: white;
+  border-color: #a855f7;
   background: rgba(147, 51, 234, 0.1);
+}
+
+.registerButton {
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #9333ea, #a855f7);
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.registerButton:hover {
   transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(147, 51, 234, 0.3);
 }

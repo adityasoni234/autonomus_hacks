@@ -11,12 +11,10 @@ import Admin from './pages/Admin';
 import './styles/globals.css';
 
 function App() {
-  const userRole = 'admin';
-
   return (
     <Router>
       <div className="app">
-        <Navbar userRole={userRole} />
+        <Navbar />
         <main className="main-content">
           <Routes>
             <Route path="/" element={<Landing />} />
