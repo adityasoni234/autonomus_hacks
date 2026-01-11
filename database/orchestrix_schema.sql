@@ -3,7 +3,7 @@
 -- Use CREATE TABLE IF NOT EXISTS to avoid conflicts
 
 -- Companies table
-CREATE TABLE IF NOT EXISTS public.companies (
+CREATE TABLE IF NOT EXISTS public.public_companies (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   name TEXT NOT NULL,
   description TEXT,
@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS public.users (
   email TEXT UNIQUE NOT NULL,
   full_name TEXT,
   role TEXT CHECK (role IN ('admin', 'manager', 'employee')) DEFAULT 'employee',
-  company_id UUID REFERENCES public.companies(id),
+  company_id UUID REFERENCES public.public_companies(id),
   avatar_url TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS public.teams (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   name TEXT NOT NULL,
   description TEXT,
-  company_id UUID REFERENCES public.companies(id),
+  company_id UUID REFERENCES public.public_companies(id),
   created_by UUID REFERENCES public.users(id),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -129,7 +129,7 @@ CREATE TABLE IF NOT EXISTS public.time_entries (
 );
 
 -- Enable Row Level Security
-ALTER TABLE public.companies ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.public_companies ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.teams ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.projects ENABLE ROW LEVEL SECURITY;
@@ -143,14 +143,14 @@ ALTER TABLE public.time_entries ENABLE ROW LEVEL SECURITY;
 -- Add company_id column to existing users table if it doesn't exist
 DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'company_id') THEN
-    ALTER TABLE public.users ADD COLUMN company_id UUID REFERENCES public.companies(id);
+    ALTER TABLE public.users ADD COLUMN company_id UUID REFERENCES public.public_companies(id);
   END IF;
 END $$;
 
 -- RLS Policies (only create if they don't exist)
 DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can view own company') THEN
-    CREATE POLICY "Users can view own company" ON public.companies FOR SELECT 
+    CREATE POLICY "Users can view own company" ON public.public_companies FOR SELECT 
     USING (id IN (SELECT company_id FROM public.users WHERE id = auth.uid()));
   END IF;
 END $$;
@@ -158,7 +158,7 @@ END $$;
 -- Add company_id column to existing teams table if it doesn't exist
 DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'teams' AND column_name = 'company_id') THEN
-    ALTER TABLE public.teams ADD COLUMN company_id UUID REFERENCES public.companies(id);
+    ALTER TABLE public.teams ADD COLUMN company_id UUID REFERENCES public.public_companies(id);
   END IF;
 END $$;
 
@@ -212,7 +212,7 @@ DO $$ BEGIN
 END $$;
 
 -- Create indexes (only if they don't exist)
-CREATE INDEX IF NOT EXISTS idx_companies_name ON public.companies(name);
+CREATE INDEX IF NOT EXISTS idx_companies_name ON public.public_companies(name);
 CREATE INDEX IF NOT EXISTS idx_users_company_id ON public.users(company_id);
 CREATE INDEX IF NOT EXISTS idx_users_role ON public.users(role);
 CREATE INDEX IF NOT EXISTS idx_teams_company_id ON public.teams(company_id);
@@ -221,7 +221,7 @@ CREATE INDEX IF NOT EXISTS idx_tasks_assigned_to ON public.tasks(assigned_to);
 CREATE INDEX IF NOT EXISTS idx_tasks_status ON public.tasks(status);
 CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON public.notifications(user_id);
 
--- Update triggers
+-- Update triggers (conditional creation)
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -230,7 +230,26 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
-CREATE TRIGGER update_companies_updated_at BEFORE UPDATE ON public.companies FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON public.users FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-CREATE TRIGGER update_projects_updated_at BEFORE UPDATE ON public.projects FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-CREATE TRIGGER update_tasks_updated_at BEFORE UPDATE ON public.tasks FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.triggers WHERE trigger_name = 'update_companies_updated_at') THEN
+    CREATE TRIGGER update_companies_updated_at BEFORE UPDATE ON public.public_companies FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.triggers WHERE trigger_name = 'update_users_updated_at') THEN
+    CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON public.users FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.triggers WHERE trigger_name = 'update_projects_updated_at') THEN
+    CREATE TRIGGER update_projects_updated_at BEFORE UPDATE ON public.projects FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.triggers WHERE trigger_name = 'update_tasks_updated_at') THEN
+    CREATE TRIGGER update_tasks_updated_at BEFORE UPDATE ON public.tasks FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+  END IF;
+END $$;
