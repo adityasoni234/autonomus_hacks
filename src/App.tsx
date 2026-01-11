@@ -11,8 +11,7 @@ import Admin from './pages/Admin';
 import './styles/globals.css';
 
 function App() {
-  // For demo purposes, set userRole to 'admin' to show all features
-  const userRole = 'admin'; // Change to 'employee' or 'manager' to test different roles
+  const userRole = 'admin';
 
   return (
     <Router>
@@ -26,9 +25,7 @@ function App() {
             <Route path="/projects" element={<Projects />} />
             <Route path="/manager" element={<Manager />} />
             <Route path="/executive" element={<Executive />} />
-            {userRole === 'admin' && (
-              <Route path="/admin" element={<Admin />} />
-            )}
+            <Route path="/admin" element={<Admin />} />
           </Routes>
         </main>
       </div>
