@@ -1,8 +1,9 @@
 -- Orchestrix Database Schema for Supabase
 -- Main SQL script to set up all tables and relationships
+-- Use CREATE TABLE IF NOT EXISTS to avoid conflicts
 
 -- Companies table
-CREATE TABLE public.companies (
+CREATE TABLE IF NOT EXISTS public.companies (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   name TEXT NOT NULL,
   description TEXT,
@@ -14,7 +15,7 @@ CREATE TABLE public.companies (
 );
 
 -- Users table (extends Supabase auth.users)
-CREATE TABLE public.users (
+CREATE TABLE IF NOT EXISTS public.users (
   id UUID REFERENCES auth.users(id) PRIMARY KEY,
   email TEXT UNIQUE NOT NULL,
   full_name TEXT,
@@ -26,7 +27,7 @@ CREATE TABLE public.users (
 );
 
 -- Teams table
-CREATE TABLE public.teams (
+CREATE TABLE IF NOT EXISTS public.teams (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   name TEXT NOT NULL,
   description TEXT,
@@ -36,7 +37,7 @@ CREATE TABLE public.teams (
 );
 
 -- Projects table
-CREATE TABLE public.projects (
+CREATE TABLE IF NOT EXISTS public.projects (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   name TEXT NOT NULL,
   description TEXT,
@@ -53,7 +54,7 @@ CREATE TABLE public.projects (
 );
 
 -- Tasks table
-CREATE TABLE public.tasks (
+CREATE TABLE IF NOT EXISTS public.tasks (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   title TEXT NOT NULL,
   description TEXT,
@@ -70,7 +71,7 @@ CREATE TABLE public.tasks (
 );
 
 -- User workload tracking
-CREATE TABLE public.user_workload (
+CREATE TABLE IF NOT EXISTS public.user_workload (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES public.users(id),
   current_load INTEGER DEFAULT 0,
@@ -81,7 +82,7 @@ CREATE TABLE public.user_workload (
 );
 
 -- Notifications table
-CREATE TABLE public.notifications (
+CREATE TABLE IF NOT EXISTS public.notifications (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES public.users(id),
   title TEXT NOT NULL,
@@ -92,7 +93,7 @@ CREATE TABLE public.notifications (
 );
 
 -- AI insights and recommendations
-CREATE TABLE public.ai_insights (
+CREATE TABLE IF NOT EXISTS public.ai_insights (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   type TEXT CHECK (type IN ('bottleneck', 'skill-gap', 'workload', 'prediction')) NOT NULL,
   title TEXT NOT NULL,
@@ -106,7 +107,7 @@ CREATE TABLE public.ai_insights (
 );
 
 -- Team memberships
-CREATE TABLE public.team_members (
+CREATE TABLE IF NOT EXISTS public.team_members (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   team_id UUID REFERENCES public.teams(id),
   user_id UUID REFERENCES public.users(id),
@@ -116,7 +117,7 @@ CREATE TABLE public.team_members (
 );
 
 -- Time tracking
-CREATE TABLE public.time_entries (
+CREATE TABLE IF NOT EXISTS public.time_entries (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES public.users(id),
   task_id UUID REFERENCES public.tasks(id),
@@ -139,12 +140,25 @@ ALTER TABLE public.ai_insights ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.team_members ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.time_entries ENABLE ROW LEVEL SECURITY;
 
--- RLS Policies
-CREATE POLICY "Users can view own company" ON public.companies FOR SELECT 
-USING (id IN (SELECT company_id FROM public.users WHERE id = auth.uid()));
+-- RLS Policies (only create if they don't exist)
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can view own company') THEN
+    CREATE POLICY "Users can view own company" ON public.companies FOR SELECT 
+    USING (id IN (SELECT company_id FROM public.users WHERE id = auth.uid()));
+  END IF;
+END $$;
 
-CREATE POLICY "Users can view own profile" ON public.users FOR SELECT USING (auth.uid() = id);
-CREATE POLICY "Users can update own profile" ON public.users FOR UPDATE USING (auth.uid() = id);
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can view own profile') THEN
+    CREATE POLICY "Users can view own profile" ON public.users FOR SELECT USING (auth.uid() = id);
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can update own profile') THEN
+    CREATE POLICY "Users can update own profile" ON public.users FOR UPDATE USING (auth.uid() = id);
+  END IF;
+END $$;
 
 CREATE POLICY "Team members can view team" ON public.teams FOR SELECT 
 USING (id IN (SELECT team_id FROM public.team_members WHERE user_id = auth.uid()));
@@ -162,15 +176,15 @@ USING (assigned_to = auth.uid() OR project_id IN (
 CREATE POLICY "Users can view own workload" ON public.user_workload FOR SELECT USING (user_id = auth.uid());
 CREATE POLICY "Users can view own notifications" ON public.notifications FOR SELECT USING (user_id = auth.uid());
 
--- Create indexes
-CREATE INDEX idx_companies_name ON public.companies(name);
-CREATE INDEX idx_users_company_id ON public.users(company_id);
-CREATE INDEX idx_users_role ON public.users(role);
-CREATE INDEX idx_teams_company_id ON public.teams(company_id);
-CREATE INDEX idx_projects_status ON public.projects(status);
-CREATE INDEX idx_tasks_assigned_to ON public.tasks(assigned_to);
-CREATE INDEX idx_tasks_status ON public.tasks(status);
-CREATE INDEX idx_notifications_user_id ON public.notifications(user_id);
+-- Create indexes (only if they don't exist)
+CREATE INDEX IF NOT EXISTS idx_companies_name ON public.companies(name);
+CREATE INDEX IF NOT EXISTS idx_users_company_id ON public.users(company_id);
+CREATE INDEX IF NOT EXISTS idx_users_role ON public.users(role);
+CREATE INDEX IF NOT EXISTS idx_teams_company_id ON public.teams(company_id);
+CREATE INDEX IF NOT EXISTS idx_projects_status ON public.projects(status);
+CREATE INDEX IF NOT EXISTS idx_tasks_assigned_to ON public.tasks(assigned_to);
+CREATE INDEX IF NOT EXISTS idx_tasks_status ON public.tasks(status);
+CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON public.notifications(user_id);
 
 -- Update triggers
 CREATE OR REPLACE FUNCTION update_updated_at_column()
