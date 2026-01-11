@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Brain, Users, TrendingUp, ArrowRight } from 'lucide-react';
+import WaveAnimation from '../components/ui/WaveAnimation';
 import styles from './Landing.module.css';
 
 const Landing: React.FC = () => {
@@ -12,7 +13,7 @@ const Landing: React.FC = () => {
     },
     {
       icon: <Users />,
-      title: 'AI Task Orchestration',
+      title: 'AI Task Orchestration', 
       description: 'Intelligent task distribution that adapts to team dynamics and project requirements.',
     },
     {
@@ -24,6 +25,7 @@ const Landing: React.FC = () => {
 
   return (
     <div className={styles.landing}>
+      <WaveAnimation />
       <section className={styles.hero}>
         <div className={styles.heroContent}>
           <h1 className={styles.title}>Orchestrix</h1>
@@ -40,8 +42,8 @@ const Landing: React.FC = () => {
               View Dashboard
               <ArrowRight size={20} />
             </Link>
-            <Link to="/executive" className={styles.secondaryButton}>
-              Explore Features
+            <Link to="/admin" className={styles.secondaryButton}>
+              Admin Panel
             </Link>
           </div>
         </div>
@@ -58,6 +60,45 @@ const Landing: React.FC = () => {
               <p className={styles.featureDescription}>{feature.description}</p>
             </div>
           ))}
+        </div>
+      </section>
+
+      <section className={styles.keyFeatures}>
+        <div className={styles.keyFeaturesContent}>
+          <h2 className={styles.keyFeaturesTitle}>✨ Key Features</h2>
+          
+          <div className={styles.featureSection}>
+            <h3 className={styles.sectionTitle}>For Team Members:</h3>
+            <ul className={styles.featureList}>
+              <li>✅ Personalized dashboard with AI-recommended tasks</li>
+              <li>✅ Smart notifications (only relevant updates)</li>
+              <li>✅ Workload visibility and capacity alerts</li>
+              <li>✅ Automated time tracking</li>
+              <li>✅ Context-aware task details</li>
+            </ul>
+          </div>
+
+          <div className={styles.featureSection}>
+            <h3 className={styles.sectionTitle}>For Project Managers:</h3>
+            <ul className={styles.featureList}>
+              <li>✅ AI-powered project health scores</li>
+              <li>✅ Predictive timeline and budget analysis</li>
+              <li>✅ One-click sprint planning</li>
+              <li>✅ Automated risk reports</li>
+              <li>✅ Team performance analytics</li>
+            </ul>
+          </div>
+
+          <div className={styles.featureSection}>
+            <h3 className={styles.sectionTitle}>For Executives:</h3>
+            <ul className={styles.featureList}>
+              <li>✅ Portfolio-level insights</li>
+              <li>✅ Resource utilization metrics</li>
+              <li>✅ ROI and efficiency tracking</li>
+              <li>✅ Strategic recommendations</li>
+              <li>✅ Custom KPI dashboards</li>
+            </ul>
+          </div>
         </div>
       </section>
 

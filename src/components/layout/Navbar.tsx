@@ -3,17 +3,42 @@ import { Link, useLocation } from 'react-router-dom';
 import { Network, Bell, User } from 'lucide-react';
 import styles from './Navbar.module.css';
 
-const Navbar: React.FC = () => {
+interface NavbarProps {
+  userRole?: 'admin' | 'manager' | 'employee';
+}
+
+const Navbar: React.FC<NavbarProps> = ({ userRole = 'employee' }) => {
   const location = useLocation();
 
-  const navItems = [
-    { path: '/', label: 'Home' },
-    { path: '/dashboard', label: 'Dashboard' },
-    { path: '/manager', label: 'Manager' },
-    { path: '/executive', label: 'Executive' },
-    { path: '/tasks', label: 'Tasks' },
-    { path: '/projects', label: 'Projects' },
-  ];
+  const getNavItems = () => {
+    const baseItems = [
+      { path: '/', label: 'Home' },
+      { path: '/dashboard', label: 'Dashboard' },
+      { path: '/tasks', label: 'Tasks' },
+      { path: '/projects', label: 'Projects' },
+    ];
+
+    if (userRole === 'admin') {
+      return [
+        ...baseItems,
+        { path: '/admin', label: 'Admin' },
+        { path: '/manager', label: 'Manager' },
+        { path: '/executive', label: 'Executive' },
+      ];
+    }
+
+    if (userRole === 'manager') {
+      return [
+        ...baseItems,
+        { path: '/manager', label: 'Manager' },
+        { path: '/executive', label: 'Executive' },
+      ];
+    }
+
+    return baseItems;
+  };
+
+  const navItems = getNavItems();
 
   return (
     <nav className={styles.navbar}>
